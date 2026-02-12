@@ -26,5 +26,46 @@ export const useNotes = () => {
         }
     };
 
-    return { notes, fetchNotes, loading, error };
+    const createNote = async (title: string, content: string) => {
+        try {
+            setLoading(true);
+            setError(null);
+            const response = await fetch('/api/notes', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, content }),
+            })
+            if(!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            setNotes(prev => [...prev, data]);
+        } catch(error) {
+            setError(`Failed to create note: ${error instanceof Error ? error.message : String(error)}`);
+            console.error("Error creating note:", error);
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    const deleteNote = async (id: string) => {
+        try {
+            setLoading(true);
+            setError(null);
+
+            const response = await fetch(`/api/notes/${id}`, {
+                method: 'DELETE',
+            });
+
+            if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); }
+            setNotes(prev => prev.filter(note => note.id !== id));
+        } catch(error) { 
+            setError(`Failed to delete note: ${error instanceof Error ? error.message : String(error)}`); 
+            console.error("Error deleting note:", error); 
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    return { notes, fetchNotes, createNote, deleteNote, loading, error };
 }
