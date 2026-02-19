@@ -67,5 +67,30 @@ export const useNotes = () => {
         }
     }
 
-    return { notes, fetchNotes, createNote, deleteNote, loading, error };
+    const updateNote = async (id: string, title: string, content: string) => {
+        try {
+            setLoading(true);
+            setError(null);
+
+            const res = await fetch(`/api/notes/${id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ title, content })
+            });
+
+            if(!res.ok) {
+                throw new Error(`HTTP error! status: ${res.status}`);
+            }
+
+            const updatedNote = await res.json();
+
+            setNotes(prev => prev.map(note => note.id === id ? updatedNote : note ))
+        } catch(err) {
+            setError(`Failed to update note: ${err instanceof Error ? err.message : String(err)}`);
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    return { notes, fetchNotes, createNote, deleteNote, updateNote,loading, error };
 }

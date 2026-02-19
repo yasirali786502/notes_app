@@ -5,12 +5,15 @@ import { Button } from "./ui/button";
 import { useState } from "react";
 
 export const Notes = () => {
-  const { notes, fetchNotes, createNote, deleteNote, error, loading } = useNotes();
+  const { notes, fetchNotes, createNote, deleteNote, updateNote, error, loading } = useNotes();
 
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
 
-  // store ids of hidden (trashed) notes
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editContent, setEditContent] = useState("");
+
   const [hiddenIds, setHiddenIds] = useState<string[]>([]);
 
   const handleCreateNote = () => {
@@ -20,34 +23,24 @@ export const Notes = () => {
     setContent("");
   };
 
-  // hide note (move to trash)
   const moveToTrash = (id: string) => {
-    const ok = window.confirm("Move this note to Trash?");
-    if (!ok) return;
-
+    if (!window.confirm("Move this note to Trash?")) return;
     setHiddenIds(prev => [...prev, id]);
   };
 
-  // restore all hidden notes
   const restoreAll = () => {
-    const ok = window.confirm("Restore all notes from Trash?");
-    if (!ok) return;
-
+    if (!window.confirm("Restore all notes from Trash?")) return;
     setHiddenIds([]);
   };
 
-  // permanent delete
   const handleDelete = (id: string) => {
-    const ok = window.confirm("Are you sure you want to delete this note permanently?");
-    if (!ok) return;
-
+    if (!window.confirm("Delete permanently?")) return;
     deleteNote(id);
   };
 
   if (error) return <div className="text-red-500">{error}</div>;
   if (loading) return <div>Loading...</div>;
 
-  // show only notes that are NOT hidden
   const visibleNotes = notes.filter(note => !hiddenIds.includes(note.id));
 
   return (
@@ -55,34 +48,81 @@ export const Notes = () => {
 
       <Button onClick={fetchNotes}>Fetch Notes</Button>
 
-      <ul>
+      <ul className="flex flex-col gap-2">
         {visibleNotes.map(note => (
-          <li key={note.id} className="border p-2 rounded">
-            <div>
-              <h3 className="font-bold">{note.title}</h3>
-              <p>{note.content}</p>
-            </div>
+          <li key={note.id} className="border p-3 rounded">
 
-            <div className="flex gap-2 mt-2">
-              <Button
-                variant="destructive"
-                onClick={() => handleDelete(note.id)}
-              >
-                Delete
-              </Button>
+            {editingId === note.id ? (
+              <div className="flex flex-col gap-2">
+                <input
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  className="border p-2 rounded"
+                />
 
-              <Button
-                variant="outline"
-                onClick={() => moveToTrash(note.id)}
-              >
-                Move to Trash
-              </Button>
-            </div>
+                <textarea
+                  value={editContent}
+                  onChange={(e) => setEditContent(e.target.value)}
+                  className="border p-2 rounded"
+                />
+
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => {
+                      updateNote(note.id, editTitle, editContent);
+                      setEditingId(null);
+                    }}
+                  >
+                    Save
+                  </Button>
+
+                  <Button
+                    variant="secondary"
+                    onClick={() => setEditingId(null)}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div>
+                  <h3 className="font-bold">{note.title}</h3>
+                  <p>{note.content}</p>
+                </div>
+
+                <div className="flex gap-2 mt-2">
+                  <Button
+                    onClick={() => {
+                      setEditingId(note.id);
+                      setEditTitle(note.title!);
+                      setEditContent(note.content!);
+                    }}
+                  >
+                    Edit
+                  </Button>
+
+                  <Button
+                    variant="destructive"
+                    onClick={() => handleDelete(note.id)}
+                  >
+                    Delete
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    onClick={() => moveToTrash(note.id)}
+                  >
+                    Move to Trash
+                  </Button>
+                </div>
+              </>
+            )}
+
           </li>
         ))}
       </ul>
 
-      {/* Restore All button (only show if something is hidden) */}
       {hiddenIds.length > 0 && (
         <Button variant="secondary" onClick={restoreAll}>
           Restore All from Trash
