@@ -1,4 +1,6 @@
-import { SupabaseBrowser } from "@/lib/SupabaseBrowser";
+'use client';
+
+import { supabase } from "@/lib/SupabaseBrowser";
 import { User } from "@supabase/supabase-js";
 import { createContext, useContext, useEffect, useState } from "react";
 
@@ -15,13 +17,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [user, setUser] = useState<User | null>(null);
 
     useEffect(() => {
-        SupabaseBrowser.auth.getUser().then(({ data }) => {
+        supabase.auth.getUser().then(({ data }) => {
             setUser(data.user);
         })
     })
 
     const signUp = async (email: string, password: string) => {
-        const { error } = await SupabaseBrowser.auth.signUp({
+        const { error } = await supabase.auth.signUp({
             email,
             password
         });
@@ -29,7 +31,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
 
     const signIn = async (email: string, password: string) => {
-        const { error } = await SupabaseBrowser.auth.signInWithPassword({
+        const { error } = await supabase.auth.signInWithPassword({
             email,
             password
         });
@@ -37,7 +39,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
 
     const signOut = async () => {
-        const { error } = await SupabaseBrowser.auth.signOut();
+        const { error } = await supabase.auth.signOut();
         if(error) alert(error.message);
     }
 

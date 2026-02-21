@@ -1,3 +1,4 @@
+'use client';
 import { Notes } from "@/types";
 import { useState } from "react";
 

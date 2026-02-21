@@ -1,3 +1,5 @@
+'use client';
+
 import { Notes } from "@/types";
 import { useState } from "react";
 
@@ -25,4 +27,5 @@ export const useCreateNote = (
                 setLoading(false);
             } 
         }
+    return { createNote }    
 }
